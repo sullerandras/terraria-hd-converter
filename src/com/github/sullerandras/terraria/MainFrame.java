@@ -49,7 +49,7 @@ public class MainFrame extends JFrame {
 
         JPanel leftPanel = new JPanel();
         leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
-        JLabel inputImageLabel = new JLabel("Input image");
+        JLabel inputImageLabel = new JLabel();
         leftPanel.add(inputImageLabel);
 
 //        inputImagePath = "Item_1.png";
@@ -68,7 +68,7 @@ public class MainFrame extends JFrame {
 
         JPanel rightPanel = new JPanel();
         rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.Y_AXIS));
-        JLabel outputImageLabel = new JLabel("Smoothed image");
+        JLabel outputImageLabel = new JLabel();
         rightPanel.add(outputImageLabel);
 
         JLabel outputImageView = new JLabel();
@@ -91,23 +91,23 @@ public class MainFrame extends JFrame {
         convertButton.addActionListener(e -> {
             clearError();
             try {
-                showImage(new ImageConverter().convertImage(inputImagePath), outputImageView);
+                showImage(new ImageConverter().convertImage(inputImagePath), outputImageView, outputImageLabel, "Smoothed image");
             } catch (ImageConverterException ex) {
                 showError(ex.getMessage(), ex);
             }
         });
         zoomLevelSlider.addChangeListener(e -> {
             clearError();
-            showImage(inputImagePath, inputImageView);
+            showImage(inputImagePath, inputImageView, inputImageLabel, "Input image");
             try {
-                showImage(new ImageConverter().convertImage(inputImagePath), outputImageView);
+                showImage(new ImageConverter().convertImage(inputImagePath), outputImageView, outputImageLabel, "Smoothed image");
             } catch (ImageConverterException ex) {
                 showError(ex.getMessage(), ex);
             }
         });
 
-        showImage(inputImagePath, inputImageView);
-        showImage(null, outputImageView);
+        showImage(inputImagePath, inputImageView, inputImageLabel, "Input image");
+        showImage(null, outputImageView, outputImageLabel, "Smoothed image");
 
         this.setContentPane(mainPanel);
         this.setSize(800, 480);
@@ -119,9 +119,10 @@ public class MainFrame extends JFrame {
         this.setVisible(true);
     }
 
-    private void showImage(String imagePath, JLabel imageView) {
+    private void showImage(String imagePath, JLabel imageView, JLabel imageLabel, String labelPrefix) {
         if (imagePath == null) {
             imageView.setIcon(null);
+            imageLabel.setText(labelPrefix);
             return;
         }
 
@@ -131,9 +132,10 @@ public class MainFrame extends JFrame {
             img = ImageIO.read(new java.io.File(imagePath));
         } catch (IOException e) {
             showError("Error reading input image: "+e, e);
+            imageLabel.setText(labelPrefix);
             return;
         }
-        System.out.println("image size: "+img.getWidth()+"x"+img.getHeight());
+        imageLabel.setText(labelPrefix+" "+img.getWidth()+"x"+img.getHeight());
 
         Image zoomedImage = img.getScaledInstance(img.getWidth() * zoomLevelSlider.getValue(), img.getHeight() * zoomLevelSlider.getValue(), Image.SCALE_AREA_AVERAGING);
         imageView.setIcon(new ImageIcon(ImageTools.toBufferedImage(zoomedImage)));
