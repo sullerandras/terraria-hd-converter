@@ -13,10 +13,13 @@ import java.awt.image.DataBufferInt;
 import java.io.File;
 import java.io.IOException;
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 public class Main extends JFrame {
     private String inputImagePath;
     private JLabel actiontarget;
+    private JSlider zoomLevelSlider;
 
     public static void main(String[] args) {
         Main main = new Main();
@@ -35,6 +38,13 @@ public class Main extends JFrame {
         JPanel toolbar = new JPanel(new GridLayout(1, 2, 10, 10));
 
         JPanel leftToolbar = new JPanel();
+        leftToolbar.add(new JLabel("Zoom level:"));
+        zoomLevelSlider = new JSlider(JSlider.HORIZONTAL, 1, 15, 8);
+        zoomLevelSlider.setMajorTickSpacing(7);
+        zoomLevelSlider.setMinorTickSpacing(1);
+        zoomLevelSlider.setPaintTicks(true);
+        zoomLevelSlider.setPaintLabels(true);
+        leftToolbar.add(zoomLevelSlider);
         toolbar.add(leftToolbar);
 
         JPanel rightToolbar = new JPanel();
@@ -94,6 +104,13 @@ public class Main extends JFrame {
         convertButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                showImage(convertImage(inputImagePath), outputImageView);
+            }
+        });
+        zoomLevelSlider.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                showImage(inputImagePath, inputImageView);
                 showImage(convertImage(inputImagePath), outputImageView);
             }
         });
@@ -216,7 +233,7 @@ public class Main extends JFrame {
         }
         System.out.println("image size: "+img.getWidth()+"x"+img.getHeight());
 
-        Image zoomedImage = img.getScaledInstance(img.getWidth() * 8, img.getHeight() * 8, Image.SCALE_AREA_AVERAGING);
+        Image zoomedImage = img.getScaledInstance(img.getWidth() * zoomLevelSlider.getValue(), img.getHeight() * zoomLevelSlider.getValue(), Image.SCALE_AREA_AVERAGING);
         imageView.setIcon(new ImageIcon(toBufferedImage(zoomedImage)));
     }
 
