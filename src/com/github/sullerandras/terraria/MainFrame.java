@@ -89,30 +89,28 @@ public class MainFrame extends JFrame {
         inputScrollPane.getVerticalScrollBar().setModel(outputScrollPane.getVerticalScrollBar().getModel());
         inputScrollPane.getHorizontalScrollBar().setModel(outputScrollPane.getHorizontalScrollBar().getModel());
 
-        Function<Boolean, Boolean> refreshInputImage = (unused) -> {
+        Runnable refreshInputImage = () -> {
             showImage(inputImagePath, inputImageView, inputImageLabel, "Input image");
-            return true;
         };
-        Function<Boolean, Boolean> refreshOutputImage = (unused) -> {
+        Runnable refreshOutputImage = () -> {
             try {
                 showImage(new ImageConverter().convertImage(inputImagePath), outputImageView, outputImageLabel, "Smoothed image");
             } catch (ImageConverterException ex) {
                 showError(ex.getMessage(), ex);
             }
-            return true;
         };
         convertButton.addActionListener(e -> {
             clearError();
-            refreshOutputImage.apply(true);
+            refreshOutputImage.run();
         });
         zoomLevelSlider.addChangeListener(e -> {
             clearError();
-            refreshInputImage.apply(true);
-            refreshOutputImage.apply(true);
+            refreshInputImage.run();
+            refreshOutputImage.run();
         });
 
-        refreshInputImage.apply(true);
-        refreshOutputImage.apply(true);
+        refreshInputImage.run();
+        refreshOutputImage.run();
 
         this.setContentPane(mainPanel);
         this.setSize(800, 480);
