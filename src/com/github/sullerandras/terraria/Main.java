@@ -62,8 +62,8 @@ public class Main extends JFrame {
 
         JPanel leftPanel = new JPanel();
         leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
-        JLabel userName = new JLabel("Select input image:");
-        leftPanel.add(userName);
+        JLabel inputImageLabel = new JLabel("Input image");
+        leftPanel.add(inputImageLabel);
 
 //        inputImagePath = "Item_1.png";
 //        inputImagePath = "temp1/NPC_4.png";
@@ -81,8 +81,8 @@ public class Main extends JFrame {
 
         JPanel rightPanel = new JPanel();
         rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.Y_AXIS));
-        JLabel pw = new JLabel("Smoothed image:");
-        rightPanel.add(pw);
+        JLabel outputImageLabel = new JLabel("Smoothed image");
+        rightPanel.add(outputImageLabel);
 
         JLabel outputImageView = new JLabel();
         JScrollPane outputScrollPane = new JScrollPane(outputImageView);
