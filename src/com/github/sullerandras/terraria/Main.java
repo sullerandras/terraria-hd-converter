@@ -1,80 +1,99 @@
 package com.github.sullerandras.terraria;
 
 import com.blogspot.intrepidis.xBRZ;
-import javafx.application.Application;
-import javafx.embed.swing.SwingFXUtils;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.GridPane;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Text;
-import javafx.stage.Stage;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.io.File;
 import java.io.IOException;
+import javax.swing.*;
 
-public class Main extends Application {
+public class Main extends JFrame {
     private String inputImagePath;
-    private Text actiontarget;
+    private JLabel actiontarget;
 
     public static void main(String[] args) {
-        launch(args);
+        Main main = new Main();
+        main.init();
+        main.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        main.setVisible(true);
     }
 
-    @Override
-    public void start(Stage primaryStage) {
-        primaryStage.setTitle("Terraria HD Converter");
-        GridPane grid = new GridPane();
-        grid.setAlignment(Pos.CENTER);
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new Insets(10, 10, 10, 10));
+    public void init() {
+        this.setTitle("Terraria HD Converter");
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
 
-        Label userName = new Label("Select input image:");
-        grid.add(userName, 0, 0);
+        // toolbar
+
+        JPanel toolbar = new JPanel(new GridLayout(1, 2, 10, 10));
+
+        JPanel leftToolbar = new JPanel();
+        toolbar.add(leftToolbar);
+
+        JPanel rightToolbar = new JPanel();
+
+        JButton convertButton = new JButton("Convert");
+        rightToolbar.add(convertButton);
+
+        toolbar.add(rightToolbar);
+
+        mainPanel.add(toolbar);
+
+        // left panel
+
+        JPanel imagesPanel = new JPanel(new GridLayout(1, 2, 10, 10));
+
+        JPanel leftPanel = new JPanel();
+        leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
+        JLabel userName = new JLabel("Select input image:");
+        leftPanel.add(userName);
 
 //        inputImagePath = "Item_1.png";
 //        inputImagePath = "temp1/NPC_4.png";
         inputImagePath = "temp1/Tiles_21.png";
 
-        ImageView inputImageView = new ImageView();
-        ScrollPane inputScrollPane = new ScrollPane();
-        inputScrollPane.setContent(inputImageView);
-        grid.add(inputScrollPane, 0, 1);
+        JLabel inputImageView = new JLabel();
+        JScrollPane inputScrollPane = new JScrollPane(inputImageView);
+        inputScrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        inputScrollPane.getHorizontalScrollBar().setUnitIncrement(16);
+        leftPanel.add(inputScrollPane);
 
-        Button convertButton = new Button("Convert");
-        grid.add(convertButton, 1, 0);
+        imagesPanel.add(leftPanel);
 
-        Label pw = new Label("Smoothed image:");
-        grid.add(pw, 2, 0);
+        // right panel
 
-        ImageView outputImageView = new ImageView();
-        ScrollPane outputScrollPane = new ScrollPane();
-        outputScrollPane.setContent(outputImageView);
-        grid.add(outputScrollPane, 2, 1);
+        JPanel rightPanel = new JPanel();
+        rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.Y_AXIS));
+        JLabel pw = new JLabel("Smoothed image:");
+        rightPanel.add(pw);
 
-        actiontarget = new Text();
-        grid.add(actiontarget, 0, 2);
+        JLabel outputImageView = new JLabel();
+        JScrollPane outputScrollPane = new JScrollPane(outputImageView);
+        outputScrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        outputScrollPane.getHorizontalScrollBar().setUnitIncrement(16);
+        rightPanel.add(outputScrollPane);
+
+        actiontarget = new JLabel();
+        rightPanel.add(actiontarget);
+
+        imagesPanel.add(rightPanel);
+
+        mainPanel.add(imagesPanel);
 
         // bind scrollbars, so if i scroll one image it scrolls the other one as well
-        inputScrollPane.hvalueProperty().bindBidirectional(outputScrollPane.hvalueProperty());
-        inputScrollPane.vvalueProperty().bindBidirectional(outputScrollPane.vvalueProperty());
+        inputScrollPane.getVerticalScrollBar().setModel(outputScrollPane.getVerticalScrollBar().getModel());
+        inputScrollPane.getHorizontalScrollBar().setModel(outputScrollPane.getHorizontalScrollBar().getModel());
 
-        convertButton.setOnAction(new EventHandler<ActionEvent>() {
-
+        convertButton.addActionListener(new ActionListener() {
             @Override
-            public void handle(ActionEvent e) {
+            public void actionPerformed(ActionEvent e) {
                 showImage(convertImage(inputImagePath), outputImageView);
             }
         });
@@ -82,11 +101,12 @@ public class Main extends Application {
         showImage(inputImagePath, inputImageView);
         showImage(null, outputImageView);
 
-        Scene scene = new Scene(grid, 800, 480);
-        primaryStage.setScene(scene);
-        primaryStage.show();
+        this.setContentPane(mainPanel);
+        this.setSize(800, 480);
 
-        convertButton.fire(); // click the convert button by default
+        convertButton.doClick(); // click the convert button by default
+
+        this.pack();
     }
 
     private String convertImage(String inputImagePath) {
@@ -180,9 +200,9 @@ public class Main extends Application {
         return buffered;
     }
 
-    private void showImage(String imagePath, ImageView imageView) {
+    private void showImage(String imagePath, JLabel imageView) {
         if (imagePath == null) {
-            imageView.setImage(null);
+            imageView.setIcon(null);
             return;
         }
 
@@ -197,7 +217,7 @@ public class Main extends Application {
         System.out.println("image size: "+img.getWidth()+"x"+img.getHeight());
 
         Image zoomedImage = img.getScaledInstance(img.getWidth() * 8, img.getHeight() * 8, Image.SCALE_AREA_AVERAGING);
-        imageView.setImage(SwingFXUtils.toFXImage(toBufferedImage(zoomedImage), null));
+        imageView.setIcon(new ImageIcon(toBufferedImage(zoomedImage)));
     }
 
     private void showError(String message, Exception e) {
@@ -205,7 +225,7 @@ public class Main extends Application {
         if (actiontarget == null) {
             return;
         }
-        actiontarget.setFill(Color.FIREBRICK);
+        actiontarget.setForeground(Color.RED);
         actiontarget.setText(message);
     }
 
