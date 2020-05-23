@@ -9,6 +9,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.function.Function;
 
 public class MainFrame extends JFrame {
     private JLabel actiontarget;
@@ -88,31 +89,33 @@ public class MainFrame extends JFrame {
         inputScrollPane.getVerticalScrollBar().setModel(outputScrollPane.getVerticalScrollBar().getModel());
         inputScrollPane.getHorizontalScrollBar().setModel(outputScrollPane.getHorizontalScrollBar().getModel());
 
-        convertButton.addActionListener(e -> {
-            clearError();
+        Function<Boolean, Boolean> refreshInputImage = (unused) -> {
+            showImage(inputImagePath, inputImageView, inputImageLabel, "Input image");
+            return true;
+        };
+        Function<Boolean, Boolean> refreshOutputImage = (unused) -> {
             try {
                 showImage(new ImageConverter().convertImage(inputImagePath), outputImageView, outputImageLabel, "Smoothed image");
             } catch (ImageConverterException ex) {
                 showError(ex.getMessage(), ex);
             }
+            return true;
+        };
+        convertButton.addActionListener(e -> {
+            clearError();
+            refreshOutputImage.apply(true);
         });
         zoomLevelSlider.addChangeListener(e -> {
             clearError();
-            showImage(inputImagePath, inputImageView, inputImageLabel, "Input image");
-            try {
-                showImage(new ImageConverter().convertImage(inputImagePath), outputImageView, outputImageLabel, "Smoothed image");
-            } catch (ImageConverterException ex) {
-                showError(ex.getMessage(), ex);
-            }
+            refreshInputImage.apply(true);
+            refreshOutputImage.apply(true);
         });
 
-        showImage(inputImagePath, inputImageView, inputImageLabel, "Input image");
-        showImage(null, outputImageView, outputImageLabel, "Smoothed image");
+        refreshInputImage.apply(true);
+        refreshOutputImage.apply(true);
 
         this.setContentPane(mainPanel);
         this.setSize(800, 480);
-
-        convertButton.doClick(); // click the convert button by default
 
         this.pack();
 
@@ -126,7 +129,6 @@ public class MainFrame extends JFrame {
             return;
         }
 
-        System.out.println("showImage: "+imagePath);
         BufferedImage img;
         try {
             img = ImageIO.read(new java.io.File(imagePath));
