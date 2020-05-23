@@ -88,27 +88,21 @@ public class MainFrame extends JFrame {
         inputScrollPane.getVerticalScrollBar().setModel(outputScrollPane.getVerticalScrollBar().getModel());
         inputScrollPane.getHorizontalScrollBar().setModel(outputScrollPane.getHorizontalScrollBar().getModel());
 
-        convertButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                clearError();
-                try {
-                    showImage(new ImageConverter().convertImage(inputImagePath), outputImageView);
-                } catch (ImageConverterException ex) {
-                    showError(ex.getMessage(), ex);
-                }
+        convertButton.addActionListener(e -> {
+            clearError();
+            try {
+                showImage(new ImageConverter().convertImage(inputImagePath), outputImageView);
+            } catch (ImageConverterException ex) {
+                showError(ex.getMessage(), ex);
             }
         });
-        zoomLevelSlider.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(ChangeEvent e) {
-                clearError();
-                showImage(inputImagePath, inputImageView);
-                try {
-                    showImage(new ImageConverter().convertImage(inputImagePath), outputImageView);
-                } catch (ImageConverterException ex) {
-                    showError(ex.getMessage(), ex);
-                }
+        zoomLevelSlider.addChangeListener(e -> {
+            clearError();
+            showImage(inputImagePath, inputImageView);
+            try {
+                showImage(new ImageConverter().convertImage(inputImagePath), outputImageView);
+            } catch (ImageConverterException ex) {
+                showError(ex.getMessage(), ex);
             }
         });
 
@@ -132,7 +126,7 @@ public class MainFrame extends JFrame {
         }
 
         System.out.println("showImage: "+imagePath);
-        BufferedImage img = null;
+        BufferedImage img;
         try {
             img = ImageIO.read(new java.io.File(imagePath));
         } catch (IOException e) {

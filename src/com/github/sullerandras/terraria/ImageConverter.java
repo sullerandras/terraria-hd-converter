@@ -11,14 +11,14 @@ import java.io.IOException;
 
 public class ImageConverter {
     public String convertImage(String inputImagePath) throws ImageConverterException {
-        BufferedImage img = null;
+        BufferedImage img;
         try {
             img = ImageIO.read(new java.io.File(inputImagePath));
         } catch (IOException e) {
             throw new ImageConverterException("Error reading input image: "+e, e);
         }
         java.awt.Image scaledDownImage = img.getScaledInstance(img.getWidth() / 2, img.getHeight() / 2, java.awt.Image.SCALE_AREA_AVERAGING);
-        File scaledDownFile = null;
+        File scaledDownFile;
         try {
             scaledDownFile = saveImage(scaledDownImage, "scaled_down.png");
         } catch (IOException e) {
@@ -26,7 +26,7 @@ public class ImageConverter {
         }
 
         Image scaledUpImage = scaleUpImage(scaledDownFile, scaledDownImage);
-        File scaledUpFile = null;
+        File scaledUpFile;
         try {
             scaledUpFile = saveImage(scaledUpImage, "scaled_up.png");
         } catch (IOException e) {
