@@ -13,7 +13,6 @@ import java.util.function.Function;
 
 public class MainFrame extends JFrame {
     private JLabel actiontarget;
-    private JSlider zoomLevelSlider;
 
     public void init() {
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -27,7 +26,7 @@ public class MainFrame extends JFrame {
 
         JPanel leftToolbar = new JPanel();
         leftToolbar.add(new JLabel("Zoom level:"));
-        zoomLevelSlider = new JSlider(JSlider.HORIZONTAL, 1, 15, 8);
+        JSlider zoomLevelSlider = new JSlider(JSlider.HORIZONTAL, 1, 15, 8);
         zoomLevelSlider.setMajorTickSpacing(7);
         zoomLevelSlider.setMinorTickSpacing(1);
         zoomLevelSlider.setPaintTicks(true);
@@ -57,11 +56,8 @@ public class MainFrame extends JFrame {
 //        inputImagePath = "temp1/NPC_4.png";
         String inputImagePath = "temp1/Tiles_21.png";
 
-        JLabel inputImageView = new JLabel();
-        JScrollPane inputScrollPane = new JScrollPane(inputImageView);
-        inputScrollPane.getVerticalScrollBar().setUnitIncrement(16);
-        inputScrollPane.getHorizontalScrollBar().setUnitIncrement(16);
-        leftPanel.add(inputScrollPane);
+        ZoomableImage inputImageView = new ZoomableImage(zoomLevelSlider.getValue());
+        leftPanel.add(inputImageView);
 
         imagesPanel.add(leftPanel);
 
@@ -72,11 +68,8 @@ public class MainFrame extends JFrame {
         JLabel outputImageLabel = new JLabel();
         rightPanel.add(outputImageLabel);
 
-        JLabel outputImageView = new JLabel();
-        JScrollPane outputScrollPane = new JScrollPane(outputImageView);
-        outputScrollPane.getVerticalScrollBar().setUnitIncrement(16);
-        outputScrollPane.getHorizontalScrollBar().setUnitIncrement(16);
-        rightPanel.add(outputScrollPane);
+        ZoomableImage outputImageView = new ZoomableImage(zoomLevelSlider.getValue());
+        rightPanel.add(outputImageView);
 
         actiontarget = new JLabel();
         rightPanel.add(actiontarget);
@@ -86,8 +79,8 @@ public class MainFrame extends JFrame {
         mainPanel.add(imagesPanel);
 
         // bind scrollbars, so if i scroll one image it scrolls the other one as well
-        inputScrollPane.getVerticalScrollBar().setModel(outputScrollPane.getVerticalScrollBar().getModel());
-        inputScrollPane.getHorizontalScrollBar().setModel(outputScrollPane.getHorizontalScrollBar().getModel());
+        inputImageView.getVerticalScrollBar().setModel(outputImageView.getVerticalScrollBar().getModel());
+        inputImageView.getHorizontalScrollBar().setModel(outputImageView.getHorizontalScrollBar().getModel());
 
         Runnable refreshInputImage = () -> {
             showImage(inputImagePath, inputImageView, inputImageLabel, "Input image");
@@ -105,8 +98,8 @@ public class MainFrame extends JFrame {
         });
         zoomLevelSlider.addChangeListener(e -> {
             clearError();
-            refreshInputImage.run();
-            refreshOutputImage.run();
+            inputImageView.setZoomLevel(zoomLevelSlider.getValue());
+            outputImageView.setZoomLevel(zoomLevelSlider.getValue());
         });
 
         refreshInputImage.run();
@@ -120,9 +113,9 @@ public class MainFrame extends JFrame {
         this.setVisible(true);
     }
 
-    private void showImage(String imagePath, JLabel imageView, JLabel imageLabel, String labelPrefix) {
+    private void showImage(String imagePath, ZoomableImage imageView, JLabel imageLabel, String labelPrefix) {
         if (imagePath == null) {
-            imageView.setIcon(null);
+            imageView.setImage(null);
             imageLabel.setText(labelPrefix);
             return;
         }
@@ -137,8 +130,7 @@ public class MainFrame extends JFrame {
         }
         imageLabel.setText(labelPrefix+" "+img.getWidth()+"x"+img.getHeight());
 
-        Image zoomedImage = img.getScaledInstance(img.getWidth() * zoomLevelSlider.getValue(), img.getHeight() * zoomLevelSlider.getValue(), Image.SCALE_AREA_AVERAGING);
-        imageView.setIcon(new ImageIcon(ImageTools.toBufferedImage(zoomedImage)));
+        imageView.setImage(img);
     }
 
     private void showError(String message, Exception e) {
