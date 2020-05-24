@@ -14,7 +14,7 @@ public class MainFrame extends JFrame {
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setTitle("Terraria HD Converter");
         JPanel mainPanel = new JPanel();
-        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+        mainPanel.setLayout(new GridBagLayout());
 
         // toolbar
 
@@ -37,16 +37,16 @@ public class MainFrame extends JFrame {
 
         toolbar.add(rightToolbar);
 
-        mainPanel.add(toolbar);
+        mainPanel.add(toolbar, constraints(0, 0, true, false, GridBagConstraints.NORTH));
 
         JPanel mainContentPanel = new JPanel();
-        mainContentPanel.setLayout(new BoxLayout(mainContentPanel, BoxLayout.X_AXIS));
+        mainContentPanel.setLayout(new GridBagLayout());
 
         // file chooser
 
         FileChooser fileChooser = new FileChooser("temp1");
 
-        mainContentPanel.add(fileChooser);
+        mainContentPanel.add(fileChooser, constraints(0, 0, false, true, GridBagConstraints.WEST));
 
         // orignal image panel
 
@@ -73,9 +73,9 @@ public class MainFrame extends JFrame {
 
         imagesPanel.add(rightPanel);
 
-        mainContentPanel.add(imagesPanel);
+        mainContentPanel.add(imagesPanel, constraints(1, 0, true, true, GridBagConstraints.EAST));
 
-        mainPanel.add(mainContentPanel);
+        mainPanel.add(mainContentPanel, constraints(0, 1, true, true, GridBagConstraints.SOUTHWEST));
 
         // bind scrollbars, so if i scroll one image it scrolls the other one as well
         inputImageView.getVerticalScrollBar().setModel(outputImageView.getVerticalScrollBar().getModel());
@@ -105,14 +105,37 @@ public class MainFrame extends JFrame {
         this.setVisible(true);
     }
 
+    private GridBagConstraints constraints(int x, int y, boolean fillHorizontal, boolean fillVertical, int anchor) {
+        GridBagConstraints c = new GridBagConstraints();
+        c.gridx = x;
+        c.gridy = y;
+        if (fillHorizontal) {
+            if (fillVertical) {
+                c.fill = GridBagConstraints.BOTH;
+            } else {
+                c.fill = GridBagConstraints.HORIZONTAL;
+            }
+        } else {
+            if (fillVertical) {
+                c.fill = GridBagConstraints.VERTICAL;
+            } else {
+                c.fill = GridBagConstraints.NONE;
+            }
+        }
+        c.anchor = anchor;
+        c.weightx = fillHorizontal ? 1 : 0;
+        c.weighty = fillVertical ? 1 : 0;
+        return c;
+    }
+
     private void loadFile(File inputFile, ZoomableImage inputImageView, ZoomableImage outputImageView) {
-        System.out.println("loading file "+inputFile);
+        System.out.println("loading file " + inputFile);
         clearError();
         BufferedImage inputImage = null;
         try {
             inputImage = ImageIO.read(inputFile);
         } catch (IOException e) {
-            showError("Error loading image: "+e, e);
+            showError("Error loading image: " + e, e);
             return;
         }
         inputImageView.setImage(inputImage);
@@ -120,7 +143,7 @@ public class MainFrame extends JFrame {
         try {
             outputImage = new ImageConverter().convertImage(inputImage);
         } catch (ImageConverterException e) {
-            showError("Error converting image: "+e, e);
+            showError("Error converting image: " + e, e);
         }
         outputImageView.setImage(outputImage);
     }
@@ -135,7 +158,7 @@ public class MainFrame extends JFrame {
         try {
             img = ImageIO.read(new java.io.File(imagePath));
         } catch (IOException e) {
-            showError("Error reading input image: "+e, e);
+            showError("Error reading input image: " + e, e);
             return;
         }
 
