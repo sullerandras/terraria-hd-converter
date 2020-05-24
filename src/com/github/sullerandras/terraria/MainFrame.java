@@ -4,11 +4,15 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 public class MainFrame extends JFrame {
-    private JLabel actiontarget;
+    private StatusBar statusBar;
 
     public void init() {
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -18,24 +22,23 @@ public class MainFrame extends JFrame {
 
         // toolbar
 
-        JPanel toolbar = new JPanel(new GridLayout(1, 2, 10, 10));
+        JPanel toolbar = new JPanel(new FlowLayout());
 
-        JPanel leftToolbar = new JPanel();
-        leftToolbar.add(new JLabel("Zoom level:"));
+        toolbar.add(new JLabel("Zoom level:"));
         JSlider zoomLevelSlider = new JSlider(JSlider.HORIZONTAL, 1, 15, 8);
         zoomLevelSlider.setMajorTickSpacing(7);
         zoomLevelSlider.setMinorTickSpacing(1);
         zoomLevelSlider.setPaintTicks(true);
         zoomLevelSlider.setPaintLabels(true);
-        leftToolbar.add(zoomLevelSlider);
-        toolbar.add(leftToolbar);
+        toolbar.add(zoomLevelSlider);
 
-        JPanel rightToolbar = new JPanel();
-
-        JButton convertButton = new JButton("Convert");
-        rightToolbar.add(convertButton);
-
-        toolbar.add(rightToolbar);
+        JLabel outputFolderLabel = new JLabel("Output folder:");
+        toolbar.add(outputFolderLabel);
+        JTextField outputFolder = new JTextField("temp2");
+        toolbar.add(outputFolder);
+        JButton convertSelectedButton = new JButton("Convert Selected");
+        convertSelectedButton.setToolTipText("Converts all selected images and saves them to the \"Output folder\"");
+        toolbar.add(convertSelectedButton);
 
         mainPanel.add(toolbar, constraints(0, 0, true, false, GridBagConstraints.NORTH));
 
@@ -68,14 +71,14 @@ public class MainFrame extends JFrame {
         ZoomableImage outputImageView = new ZoomableImage(zoomLevelSlider.getValue(), "xBRZ smoothed image");
         rightPanel.add(outputImageView);
 
-        actiontarget = new JLabel();
-        rightPanel.add(actiontarget);
-
         imagesPanel.add(rightPanel);
 
         mainContentPanel.add(imagesPanel, constraints(1, 0, true, true, GridBagConstraints.EAST));
 
         mainPanel.add(mainContentPanel, constraints(0, 1, true, true, GridBagConstraints.SOUTHWEST));
+
+        statusBar = new StatusBar();
+        mainPanel.add(statusBar, constraints(0, 2, true, false, GridBagConstraints.SOUTHWEST));
 
         // bind scrollbars, so if i scroll one image it scrolls the other one as well
         inputImageView.getVerticalScrollBar().setModel(outputImageView.getVerticalScrollBar().getModel());
@@ -89,6 +92,10 @@ public class MainFrame extends JFrame {
 
         fileChooser.addFileSelectionListener(file -> {
             loadFile(file, inputImageView, outputImageView);
+        });
+
+        convertSelectedButton.addActionListener(e -> {
+            convertFiles(fileChooser.getSelectedFiles(), outputFolder.getText());
         });
 
 //        inputImagePath = "Item_1.png";
@@ -148,33 +155,100 @@ public class MainFrame extends JFrame {
         outputImageView.setImage(outputImage);
     }
 
-    private void showImage(String imagePath, ZoomableImage imageView) {
-        if (imagePath == null) {
-            imageView.setImage(null);
-            return;
-        }
+    private void convertFiles(List<File> files, String outputFolder) {
+        clearError();
+        new File(outputFolder).mkdirs();
+        SwingWorker<String, Integer> task = new SwingWorker<>() {
+            @Override
+            protected String doInBackground() throws Exception {
+                int success = 0;
+                int failure = 0;
+                int lastProgress = 0;
+                final long startTime = System.currentTimeMillis();
 
-        BufferedImage img;
-        try {
-            img = ImageIO.read(new java.io.File(imagePath));
-        } catch (IOException e) {
-            showError("Error reading input image: " + e, e);
-            return;
-        }
+                for (int i = 0; i < files.size(); i++) {
+                    File file = files.get(i);
+                    BufferedImage inputImage = null;
+                    try {
+                        inputImage = ImageIO.read(file);
+                    } catch (IOException e) {
+                        System.out.println("Error loading image " + file.getName() + ": " + e);
+                        failure++;
+                    }
 
-        imageView.setImage(img);
+                    try {
+                        Image outputImage = new ImageConverter().convertImage(file.getName(), inputImage);
+                        try {
+                            ImageTools.saveImage(outputImage, new File(outputFolder, file.getName()));
+                            success++;
+                        } catch (IOException e) {
+                            System.out.println("Error saving image " + file.getName() + ": " + e);
+                            failure++;
+                        }
+                    } catch (ImageConverterException e) {
+                        System.out.println("Error converting image " + file.getName() + ": " + e);
+                        failure++;
+                    }
+                    int progress = i * 100 / files.size();
+                    if (progress != lastProgress) {
+                        setProgress(progress);
+                        lastProgress = progress;
+                    }
+                }
+                String message = "Processed " + (success + failure) + " images in " + ((System.currentTimeMillis() - startTime) / 1000.0) + " sec";
+                if (failure != 0) {
+                    message += " (" + success + " was successful, " + failure + " has failed)";
+                }
+                return message;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    showInfo(get());
+                } catch (InterruptedException | ExecutionException e) {
+                    showError("Error in done: "+e, e);
+                }
+            }
+        };
+
+        task.addPropertyChangeListener(new PropertyChangeListener() {
+            @Override
+            public void propertyChange(PropertyChangeEvent evt) {
+                if ("progress".equals(evt.getPropertyName())) {
+                 showProgress(((Integer)evt.getNewValue()) / 100.0);
+             }
+            }
+        });
+
+        task.execute();
     }
 
     private void showError(String message, Exception e) {
         e.printStackTrace();
-        if (actiontarget == null) {
+        if (statusBar == null) {
             return;
         }
-        actiontarget.setForeground(Color.RED);
-        actiontarget.setText(message);
+        statusBar.setForeground(Color.RED);
+        statusBar.setText(message);
+    }
+
+    private void showInfo(String message) {
+        if (statusBar == null) {
+            return;
+        }
+        statusBar.setForeground(Color.BLACK);
+        statusBar.setText(message);
+    }
+
+    private void showProgress(double progress) {
+        if (statusBar == null) {
+            return;
+        }
+        statusBar.setProgress(progress);
     }
 
     private void clearError() {
-        actiontarget.setText("");
+        statusBar.setText("");
     }
 }

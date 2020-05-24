@@ -2,6 +2,7 @@ package com.github.sullerandras.terraria;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 
 public class ZoomableImage extends JPanel {
     private final JLabel imageView;
@@ -41,6 +42,9 @@ public class ZoomableImage extends JPanel {
     }
 
     public void setImage(Image image) {
+        if (image == null) {
+            image = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+        }
         originalImage = image;
         originalImageWidth = image.getWidth(null);
         originalImageHeight = image.getHeight(null);

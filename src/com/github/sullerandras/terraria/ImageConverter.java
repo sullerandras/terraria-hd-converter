@@ -2,16 +2,15 @@ package com.github.sullerandras.terraria;
 
 import com.blogspot.intrepidis.xBRZ;
 
-import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
-import java.io.File;
-import java.io.IOException;
 
 public class ImageConverter {
     public Image convertImage(String fileName, BufferedImage img) throws ImageConverterException {
-        Image scaledDownImage = img.getScaledInstance(img.getWidth() / 2, img.getHeight() / 2, Image.SCALE_AREA_AVERAGING);
+        final int w = Math.max(img.getWidth() / 2, 1);
+        final int h = Math.max(img.getHeight() / 2, 1);
+        Image scaledDownImage = img.getScaledInstance(w, h, Image.SCALE_AREA_AVERAGING);
         return scaleUpImage(fileName, scaledDownImage);
     }
 

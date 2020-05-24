@@ -5,6 +5,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 public class FileChooser extends JPanel {
@@ -76,5 +77,14 @@ public class FileChooser extends JPanel {
                 }
             }
         });
+    }
+
+    public java.util.List<File> getSelectedFiles() {
+        java.util.List<CustomFile> selectedFiles = fileList.getSelectedValuesList();
+        java.util.List<File> files = new ArrayList<>(selectedFiles.size());
+        for (CustomFile f : selectedFiles) {
+            files.add(f.file);
+        }
+        return files;
     }
 }
