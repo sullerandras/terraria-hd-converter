@@ -10,13 +10,7 @@ import java.io.File;
 import java.io.IOException;
 
 public class ImageConverter {
-    public String convertImage(String inputImagePath) throws ImageConverterException {
-        BufferedImage img;
-        try {
-            img = ImageIO.read(new java.io.File(inputImagePath));
-        } catch (IOException e) {
-            throw new ImageConverterException("Error reading input image: "+e, e);
-        }
+    public Image convertImage(BufferedImage img) throws ImageConverterException {
         java.awt.Image scaledDownImage = img.getScaledInstance(img.getWidth() / 2, img.getHeight() / 2, java.awt.Image.SCALE_AREA_AVERAGING);
         File scaledDownFile;
         try {
@@ -25,15 +19,7 @@ public class ImageConverter {
             throw new ImageConverterException("Error writing image to file: "+e, e);
         }
 
-        Image scaledUpImage = scaleUpImage(scaledDownFile, scaledDownImage);
-        File scaledUpFile;
-        try {
-            scaledUpFile = saveImage(scaledUpImage, "scaled_up.png");
-        } catch (IOException e) {
-            throw new ImageConverterException("Error writing image to file: "+e, e);
-        }
-
-        return scaledUpFile != null ? scaledUpFile.getAbsolutePath() : null;
+        return scaleUpImage(scaledDownFile, scaledDownImage);
     }
 
     private Image scaleUpImage(File file, java.awt.Image image) {

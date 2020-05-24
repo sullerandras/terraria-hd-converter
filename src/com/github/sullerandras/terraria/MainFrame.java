@@ -2,14 +2,10 @@ package com.github.sullerandras.terraria;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
-import java.util.function.Function;
 
 public class MainFrame extends JFrame {
     private JLabel actiontarget;
@@ -43,23 +39,28 @@ public class MainFrame extends JFrame {
 
         mainPanel.add(toolbar);
 
-        // left panel
+        JPanel mainContentPanel = new JPanel();
+        mainContentPanel.setLayout(new BoxLayout(mainContentPanel, BoxLayout.X_AXIS));
+
+        // file chooser
+
+        FileChooser fileChooser = new FileChooser("temp1");
+
+        mainContentPanel.add(fileChooser);
+
+        // orignal image panel
 
         JPanel imagesPanel = new JPanel(new GridLayout(1, 2, 10, 10));
 
         JPanel leftPanel = new JPanel();
         leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
 
-//        inputImagePath = "Item_1.png";
-//        inputImagePath = "temp1/NPC_4.png";
-        String inputImagePath = "temp1/Tiles_21.png";
-
         ZoomableImage inputImageView = new ZoomableImage(zoomLevelSlider.getValue(), "Input image");
         leftPanel.add(inputImageView);
 
         imagesPanel.add(leftPanel);
 
-        // right panel
+        // xBRZ image panel
 
         JPanel rightPanel = new JPanel();
         rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.Y_AXIS));
@@ -72,34 +73,29 @@ public class MainFrame extends JFrame {
 
         imagesPanel.add(rightPanel);
 
-        mainPanel.add(imagesPanel);
+        mainContentPanel.add(imagesPanel);
+
+        mainPanel.add(mainContentPanel);
 
         // bind scrollbars, so if i scroll one image it scrolls the other one as well
         inputImageView.getVerticalScrollBar().setModel(outputImageView.getVerticalScrollBar().getModel());
         inputImageView.getHorizontalScrollBar().setModel(outputImageView.getHorizontalScrollBar().getModel());
 
-        Runnable refreshInputImage = () -> {
-            showImage(inputImagePath, inputImageView);
-        };
-        Runnable refreshOutputImage = () -> {
-            try {
-                showImage(new ImageConverter().convertImage(inputImagePath), outputImageView);
-            } catch (ImageConverterException ex) {
-                showError(ex.getMessage(), ex);
-            }
-        };
-        convertButton.addActionListener(e -> {
-            clearError();
-            refreshOutputImage.run();
-        });
         zoomLevelSlider.addChangeListener(e -> {
             clearError();
             inputImageView.setZoomLevel(zoomLevelSlider.getValue());
             outputImageView.setZoomLevel(zoomLevelSlider.getValue());
         });
 
-        refreshInputImage.run();
-        refreshOutputImage.run();
+        fileChooser.addFileSelectionListener(file -> {
+            loadFile(file, inputImageView, outputImageView);
+        });
+
+//        inputImagePath = "Item_1.png";
+//        inputImagePath = "temp1/NPC_4.png";
+        String inputImagePath = "temp1/Tiles_21.png";
+
+        loadFile(new File("temp1/Tiles_21.png"), inputImageView, outputImageView);
 
         this.setContentPane(mainPanel);
         this.setSize(800, 480);
@@ -107,6 +103,26 @@ public class MainFrame extends JFrame {
         this.pack();
 
         this.setVisible(true);
+    }
+
+    private void loadFile(File inputFile, ZoomableImage inputImageView, ZoomableImage outputImageView) {
+        System.out.println("loading file "+inputFile);
+        clearError();
+        BufferedImage inputImage = null;
+        try {
+            inputImage = ImageIO.read(inputFile);
+        } catch (IOException e) {
+            showError("Error loading image: "+e, e);
+            return;
+        }
+        inputImageView.setImage(inputImage);
+        Image outputImage = null;
+        try {
+            outputImage = new ImageConverter().convertImage(inputImage);
+        } catch (ImageConverterException e) {
+            showError("Error converting image: "+e, e);
+        }
+        outputImageView.setImage(outputImage);
     }
 
     private void showImage(String imagePath, ZoomableImage imageView) {
