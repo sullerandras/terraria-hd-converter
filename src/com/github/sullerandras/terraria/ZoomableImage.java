@@ -6,17 +6,25 @@ import java.awt.*;
 public class ZoomableImage extends JPanel {
     private final JLabel imageView;
     private final JScrollPane scrollPane;
+    private final JLabel label;
 
     private int zoomLevel;
+    private final String imageLabel;
+
     private Image originalImage;
     private int originalImageWidth;
     private int originalImageHeight;
     private Image zoomedImage;
 
-    public ZoomableImage(int zoomLevel) {
+    public ZoomableImage(int zoomLevel, String imageLabel) {
         super();
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         this.zoomLevel = zoomLevel;
+        this.imageLabel = imageLabel;
+
+        label = new JLabel(imageLabel);
+        this.add(label);
+
         imageView = new JLabel();
         scrollPane = new JScrollPane(imageView);
         scrollPane.getHorizontalScrollBar().setUnitIncrement(16);
@@ -33,9 +41,10 @@ public class ZoomableImage extends JPanel {
     }
 
     public void setImage(Image image) {
-        this.originalImage = image;
-        this.originalImageWidth = image.getWidth(null);
-        this.originalImageHeight = image.getHeight(null);
+        originalImage = image;
+        originalImageWidth = image.getWidth(null);
+        originalImageHeight = image.getHeight(null);
+        label.setText(imageLabel + " " + originalImageWidth + "x" + originalImageHeight);
         redrawImage();
     }
 

@@ -49,14 +49,12 @@ public class MainFrame extends JFrame {
 
         JPanel leftPanel = new JPanel();
         leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
-        JLabel inputImageLabel = new JLabel();
-        leftPanel.add(inputImageLabel);
 
 //        inputImagePath = "Item_1.png";
 //        inputImagePath = "temp1/NPC_4.png";
         String inputImagePath = "temp1/Tiles_21.png";
 
-        ZoomableImage inputImageView = new ZoomableImage(zoomLevelSlider.getValue());
+        ZoomableImage inputImageView = new ZoomableImage(zoomLevelSlider.getValue(), "Input image");
         leftPanel.add(inputImageView);
 
         imagesPanel.add(leftPanel);
@@ -65,10 +63,8 @@ public class MainFrame extends JFrame {
 
         JPanel rightPanel = new JPanel();
         rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.Y_AXIS));
-        JLabel outputImageLabel = new JLabel();
-        rightPanel.add(outputImageLabel);
 
-        ZoomableImage outputImageView = new ZoomableImage(zoomLevelSlider.getValue());
+        ZoomableImage outputImageView = new ZoomableImage(zoomLevelSlider.getValue(), "xBRZ smoothed image");
         rightPanel.add(outputImageView);
 
         actiontarget = new JLabel();
@@ -83,11 +79,11 @@ public class MainFrame extends JFrame {
         inputImageView.getHorizontalScrollBar().setModel(outputImageView.getHorizontalScrollBar().getModel());
 
         Runnable refreshInputImage = () -> {
-            showImage(inputImagePath, inputImageView, inputImageLabel, "Input image");
+            showImage(inputImagePath, inputImageView);
         };
         Runnable refreshOutputImage = () -> {
             try {
-                showImage(new ImageConverter().convertImage(inputImagePath), outputImageView, outputImageLabel, "Smoothed image");
+                showImage(new ImageConverter().convertImage(inputImagePath), outputImageView);
             } catch (ImageConverterException ex) {
                 showError(ex.getMessage(), ex);
             }
@@ -113,10 +109,9 @@ public class MainFrame extends JFrame {
         this.setVisible(true);
     }
 
-    private void showImage(String imagePath, ZoomableImage imageView, JLabel imageLabel, String labelPrefix) {
+    private void showImage(String imagePath, ZoomableImage imageView) {
         if (imagePath == null) {
             imageView.setImage(null);
-            imageLabel.setText(labelPrefix);
             return;
         }
 
@@ -125,10 +120,8 @@ public class MainFrame extends JFrame {
             img = ImageIO.read(new java.io.File(imagePath));
         } catch (IOException e) {
             showError("Error reading input image: "+e, e);
-            imageLabel.setText(labelPrefix);
             return;
         }
-        imageLabel.setText(labelPrefix+" "+img.getWidth()+"x"+img.getHeight());
 
         imageView.setImage(img);
     }
