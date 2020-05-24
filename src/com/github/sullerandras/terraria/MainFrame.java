@@ -141,7 +141,7 @@ public class MainFrame extends JFrame {
         inputImageView.setImage(inputImage);
         Image outputImage = null;
         try {
-            outputImage = new ImageConverter().convertImage(inputImage);
+            outputImage = new ImageConverter().convertImage(inputFile.getName(), inputImage);
         } catch (ImageConverterException e) {
             showError("Error converting image: " + e, e);
         }

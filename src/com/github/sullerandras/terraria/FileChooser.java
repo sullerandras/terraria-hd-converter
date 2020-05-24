@@ -35,7 +35,7 @@ public class FileChooser extends JPanel {
         this.folder = folder;
 
         fileList = new JList<>();
-        fileList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        fileList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
         this.add(new JScrollPane(fileList));
         this.setMinimumSize(new Dimension(200, 200));
 

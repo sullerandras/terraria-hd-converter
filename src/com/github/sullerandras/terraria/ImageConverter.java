@@ -10,19 +10,12 @@ import java.io.File;
 import java.io.IOException;
 
 public class ImageConverter {
-    public Image convertImage(BufferedImage img) throws ImageConverterException {
-        java.awt.Image scaledDownImage = img.getScaledInstance(img.getWidth() / 2, img.getHeight() / 2, java.awt.Image.SCALE_AREA_AVERAGING);
-        File scaledDownFile;
-        try {
-            scaledDownFile = saveImage(scaledDownImage, "scaled_down.png");
-        } catch (IOException e) {
-            throw new ImageConverterException("Error writing image to file: "+e, e);
-        }
-
-        return scaleUpImage(scaledDownFile, scaledDownImage);
+    public Image convertImage(String fileName, BufferedImage img) throws ImageConverterException {
+        Image scaledDownImage = img.getScaledInstance(img.getWidth() / 2, img.getHeight() / 2, Image.SCALE_AREA_AVERAGING);
+        return scaleUpImage(fileName, scaledDownImage);
     }
 
-    private Image scaleUpImage(File file, java.awt.Image image) {
+    private Image scaleUpImage(String fileName, Image image) {
         final boolean frame = true;
         final BufferedImage b;
         if (frame) {
@@ -58,16 +51,6 @@ public class ImageConverter {
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         image.setRGB(0, 0, width, height, pixels, 0, width);
         return image;
-    }
-
-    private File saveImage(java.awt.Image image, String path) throws IOException {
-        if (image == null) {
-            return null;
-        }
-        BufferedImage buffered = ImageTools.toBufferedImage(image);
-        File file = new java.io.File(path);
-        ImageIO.write(buffered, "PNG", file);
-        return file;
     }
 
     private static BufferedImage toFramedBufferedImage(Image image) {
