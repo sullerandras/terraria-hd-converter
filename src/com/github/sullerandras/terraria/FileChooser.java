@@ -1,6 +1,8 @@
 package com.github.sullerandras.terraria;
 
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.io.File;
 import java.util.Arrays;
@@ -59,13 +61,20 @@ public class FileChooser extends JPanel {
     }
 
     public void addFileSelectionListener(FileSelectionListener listener) {
-        fileList.addListSelectionListener(e -> {
-            System.out.println("list selection listener: "+e);
-            CustomFile f = fileList.getSelectedValue();
-            if (f == null || !f.file.isFile()) {
-                return;
+        fileList.addListSelectionListener(new ListSelectionListener() {
+            private File lastFile = null;
+
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                CustomFile f = fileList.getSelectedValue();
+                if (f == null || !f.file.isFile()) {
+                    return;
+                }
+                if (lastFile != f.file) { // avoid calling the listener multiple times with the same value
+                    lastFile = f.file;
+                    listener.fileSelected(f.file);
+                }
             }
-            listener.fileSelected(f.file);
         });
     }
 }
