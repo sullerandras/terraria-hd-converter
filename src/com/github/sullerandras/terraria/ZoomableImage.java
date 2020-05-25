@@ -57,6 +57,17 @@ public class ZoomableImage extends JPanel {
         redrawImage();
     }
 
+    public void bindScrollBarsTo(ZoomableImage other) {
+        if (originalImageHeight == other.originalImageHeight && originalImageWidth == other.originalImageWidth) {
+            // bind scrollbars, so if i scroll one image it scrolls the other one as well
+            getHorizontalScrollBar().setModel(other.getHorizontalScrollBar().getModel());
+            getVerticalScrollBar().setModel(other.getVerticalScrollBar().getModel());
+        } else {
+            getHorizontalScrollBar().setModel(new DefaultBoundedRangeModel(getHorizontalScrollBar().getValue(), 1, getHorizontalScrollBar().getMinimum(), getHorizontalScrollBar().getMaximum()));
+            getVerticalScrollBar().setModel(new DefaultBoundedRangeModel(getVerticalScrollBar().getValue(), 1, getVerticalScrollBar().getMinimum(), getVerticalScrollBar().getMaximum()));
+        }
+    }
+
     private void redrawImage() {
         zoomedImage = originalImage.getScaledInstance(originalImageWidth * zoomLevel, originalImageHeight * zoomLevel, Image.SCALE_AREA_AVERAGING);
         imageView.setIcon(new ImageIcon(ImageTools.toBufferedImage(zoomedImage)));

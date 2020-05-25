@@ -80,10 +80,6 @@ public class MainFrame extends JFrame {
         statusBar = new StatusBar();
         mainPanel.add(statusBar, constraints(0, 2, true, false, GridBagConstraints.SOUTHWEST));
 
-        // bind scrollbars, so if i scroll one image it scrolls the other one as well
-        inputImageView.getVerticalScrollBar().setModel(outputImageView.getVerticalScrollBar().getModel());
-        inputImageView.getHorizontalScrollBar().setModel(outputImageView.getHorizontalScrollBar().getModel());
-
         zoomLevelSlider.addChangeListener(e -> {
             clearError();
             inputImageView.setZoomLevel(zoomLevelSlider.getValue());
@@ -92,6 +88,7 @@ public class MainFrame extends JFrame {
 
         fileChooser.addFileSelectionListener(file -> {
             loadFile(file, inputImageView, outputImageView);
+            bindScrollbars(inputImageView, outputImageView);
         });
 
         convertSelectedButton.addActionListener(e -> {
@@ -100,9 +97,10 @@ public class MainFrame extends JFrame {
 
 //        inputImagePath = "Item_1.png";
 //        inputImagePath = "temp1/NPC_4.png";
-        String inputImagePath = "temp1/Tiles_21.png";
+//        String inputImagePath = "temp1/Tiles_21.png";
+        String inputImagePath = "temp1/NPC_264.png";
 
-        loadFile(new File("temp1/Tiles_21.png"), inputImageView, outputImageView);
+        loadFile(new File(inputImagePath), inputImageView, outputImageView);
 
         this.setContentPane(mainPanel);
         this.setSize(800, 480);
@@ -140,19 +138,20 @@ public class MainFrame extends JFrame {
         clearError();
         BufferedImage inputImage = null;
         try {
-            inputImage = ImageIO.read(inputFile);
+            inputImage = ImageTools.readImage(inputFile);
         } catch (IOException e) {
             showError("Error loading image: " + e, e);
             return;
         }
         inputImageView.setImage(inputImage);
-        Image outputImage = null;
         try {
-            outputImage = new ImageConverter().convertImage(inputFile.getName(), inputImage);
+            Image outputImage = new ImageConverter().convertImage(inputFile.getName(), inputImage);
+            outputImageView.setImage(outputImage);
         } catch (ImageConverterException e) {
             showError("Error converting image: " + e, e);
+            outputImageView.setImage(null);
         }
-        outputImageView.setImage(outputImage);
+
     }
 
     private void convertFiles(List<File> files, String outputFolder) {
@@ -168,9 +167,13 @@ public class MainFrame extends JFrame {
 
                 for (int i = 0; i < files.size(); i++) {
                     File file = files.get(i);
+                    if (!file.isFile()) {
+                        continue;
+                    }
+
                     BufferedImage inputImage = null;
                     try {
-                        inputImage = ImageIO.read(file);
+                        inputImage = ImageTools.readImage(file);
                     } catch (IOException e) {
                         System.out.println("Error loading image " + file.getName() + ": " + e);
                         failure++;
@@ -222,6 +225,10 @@ public class MainFrame extends JFrame {
         });
 
         task.execute();
+    }
+
+    private void bindScrollbars(ZoomableImage zoomableImage1, ZoomableImage zoomableImage2) {
+        zoomableImage1.bindScrollBarsTo(zoomableImage2);
     }
 
     private void showError(String message, Exception e) {

@@ -3,10 +3,27 @@ package com.github.sullerandras.terraria;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorConvertOp;
 import java.io.File;
 import java.io.IOException;
 
 public class ImageTools {
+    /**
+     * Reads image as TYPE_INT_ARGB
+     * @param file The image we want to read
+     * @return The image in TYPE_INT_ARGB
+     */
+    public static BufferedImage readImage(File file) throws IOException {
+        BufferedImage image = ImageIO.read(file);
+        if (image.getType() == BufferedImage.TYPE_INT_ARGB) {
+            return image;
+        }
+        BufferedImage newImage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
+        ColorConvertOp xformOp = new ColorConvertOp(null);
+        xformOp.filter(image, newImage);
+        return newImage;
+    }
+
     public static BufferedImage toBufferedImage(Image image) {
         if (image instanceof BufferedImage) {
             return (BufferedImage) image;
