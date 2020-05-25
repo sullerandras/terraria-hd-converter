@@ -37,6 +37,7 @@ public class ImageTools {
         if (image == null) {
             return;
         }
+        file.getAbsoluteFile().getParentFile().mkdirs();
         BufferedImage buffered = ImageTools.toBufferedImage(image);
         ImageIO.write(buffered, "PNG", file);
     }

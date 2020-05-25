@@ -39,6 +39,9 @@ public class MainFrame extends JFrame {
         JButton convertSelectedButton = new JButton("Convert Selected");
         convertSelectedButton.setToolTipText("Converts all selected images and saves them to the \"Output folder\"");
         toolbar.add(convertSelectedButton);
+        JButton convertAll = new JButton("Convert All");
+        convertAll.setToolTipText("Converts all files recursively in the input folder and saves them to the \"Output folder\" with the correct relative path");
+        toolbar.add(convertAll);
 
         mainPanel.add(toolbar, constraints(0, 0, true, false, GridBagConstraints.NORTH));
 
@@ -92,7 +95,15 @@ public class MainFrame extends JFrame {
         });
 
         convertSelectedButton.addActionListener(e -> {
-            convertFiles(fileChooser.getSelectedFiles(), outputFolder.getText());
+            convertFiles(fileChooser.getSelectedFiles(), fileChooser.getFolder(), outputFolder.getText());
+        });
+
+        convertAll.addActionListener(e -> {
+            try {
+                convertFiles(fileChooser.getAllFilesRecursively(), fileChooser.getFolder(), outputFolder.getText());
+            } catch (IOException ex) {
+                showError("Error converting files: "+ex, ex);
+            }
         });
 
 //        inputImagePath = "Item_1.png";
@@ -154,7 +165,7 @@ public class MainFrame extends JFrame {
 
     }
 
-    private void convertFiles(List<File> files, String outputFolder) {
+    private void convertFiles(List<File> files, File inputFolder, String outputFolder) {
         clearError();
         new File(outputFolder).mkdirs();
         SwingWorker<String, Integer> task = new SwingWorker<>() {
@@ -166,10 +177,8 @@ public class MainFrame extends JFrame {
                 final long startTime = System.currentTimeMillis();
 
                 for (int i = 0; i < files.size(); i++) {
-                    File file = files.get(i);
-                    if (!file.isFile()) {
-                        continue;
-                    }
+                    final File file = files.get(i);
+                    final String relativePath = getRelativeFilename(file, inputFolder);
 
                     BufferedImage inputImage = null;
                     try {
@@ -182,7 +191,7 @@ public class MainFrame extends JFrame {
                     try {
                         Image outputImage = new ImageConverter().convertImage(file.getName(), inputImage);
                         try {
-                            ImageTools.saveImage(outputImage, new File(outputFolder, file.getName()));
+                            ImageTools.saveImage(outputImage, new File(outputFolder, relativePath));
                             success++;
                         } catch (IOException e) {
                             System.out.println("Error saving image " + file.getName() + ": " + e);
@@ -225,6 +234,19 @@ public class MainFrame extends JFrame {
         });
 
         task.execute();
+    }
+
+    private String getRelativeFilename(File file, File base) throws IOException {
+        String filePath = file.getAbsolutePath();
+        String basePath = base.getAbsolutePath();
+        if (filePath.startsWith(basePath)) {
+            String path = filePath.substring(basePath.length());
+            if (path.startsWith("/")) {
+                path = path.substring(1);
+            }
+            return path;
+        }
+        throw new IOException(file+" is not in "+base);
     }
 
     private void bindScrollbars(ZoomableImage zoomableImage1, ZoomableImage zoomableImage2) {

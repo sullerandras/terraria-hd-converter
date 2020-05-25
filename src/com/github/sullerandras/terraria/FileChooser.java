@@ -5,11 +5,15 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class FileChooser extends JPanel {
-    private String folder;
+    private File folder;
     private final JList<CustomFile> fileList;
 
     private static class CustomFile {
@@ -33,7 +37,7 @@ public class FileChooser extends JPanel {
     public FileChooser(String folder) {
         super();
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        this.folder = folder;
+        this.folder = new File(folder);
 
         fileList = new JList<>();
         fileList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
@@ -44,7 +48,7 @@ public class FileChooser extends JPanel {
     }
 
     private void refreshFiles() {
-        File[] files = new File(folder).listFiles();
+        File[] files = folder.listFiles();
         if (files == null) {
             files = new File[0];
         }
@@ -83,8 +87,20 @@ public class FileChooser extends JPanel {
         java.util.List<CustomFile> selectedFiles = fileList.getSelectedValuesList();
         java.util.List<File> files = new ArrayList<>(selectedFiles.size());
         for (CustomFile f : selectedFiles) {
-            files.add(f.file);
+            if (f.file.isFile()) {
+                files.add(f.file);
+            }
         }
         return files;
+    }
+
+    public java.util.List<File> getAllFilesRecursively() throws IOException {
+        java.util.List<File> files = new ArrayList<>();
+        Files.walk(Paths.get(folder.getAbsolutePath())).filter(Files::isRegularFile).forEach(f -> { files.add(f.toFile()); });
+        return files;
+    }
+
+    public File getFolder() {
+        return folder;
     }
 }
