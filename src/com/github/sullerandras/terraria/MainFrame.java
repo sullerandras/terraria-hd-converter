@@ -43,7 +43,7 @@ public class MainFrame extends JFrame {
         convertAll.setToolTipText("Converts all files recursively in the input folder and saves them to the \"Output folder\" with the correct relative path");
         toolbar.add(convertAll);
 
-        mainPanel.add(toolbar, constraints(0, 0, true, false, GridBagConstraints.NORTH));
+        mainPanel.add(toolbar, UITools.constraints(0, 0, true, false, GridBagConstraints.NORTH));
 
         JPanel mainContentPanel = new JPanel();
         mainContentPanel.setLayout(new GridBagLayout());
@@ -52,7 +52,7 @@ public class MainFrame extends JFrame {
 
         FileChooser fileChooser = new FileChooser("temp1");
 
-        mainContentPanel.add(fileChooser, constraints(0, 0, false, true, GridBagConstraints.WEST));
+        mainContentPanel.add(fileChooser, UITools.constraints(0, 0, false, true, GridBagConstraints.WEST));
 
         // orignal image panel
 
@@ -76,12 +76,12 @@ public class MainFrame extends JFrame {
 
         imagesPanel.add(rightPanel);
 
-        mainContentPanel.add(imagesPanel, constraints(1, 0, true, true, GridBagConstraints.EAST));
+        mainContentPanel.add(imagesPanel, UITools.constraints(1, 0, true, true, GridBagConstraints.EAST));
 
-        mainPanel.add(mainContentPanel, constraints(0, 1, true, true, GridBagConstraints.SOUTHWEST));
+        mainPanel.add(mainContentPanel, UITools.constraints(0, 1, true, true, GridBagConstraints.SOUTHWEST));
 
         statusBar = new StatusBar();
-        mainPanel.add(statusBar, constraints(0, 2, true, false, GridBagConstraints.SOUTHWEST));
+        mainPanel.add(statusBar, UITools.constraints(0, 2, true, false, GridBagConstraints.SOUTHWEST));
 
         zoomLevelSlider.addChangeListener(e -> {
             clearError();
@@ -119,29 +119,6 @@ public class MainFrame extends JFrame {
         this.pack();
 
         this.setVisible(true);
-    }
-
-    private GridBagConstraints constraints(int x, int y, boolean fillHorizontal, boolean fillVertical, int anchor) {
-        GridBagConstraints c = new GridBagConstraints();
-        c.gridx = x;
-        c.gridy = y;
-        if (fillHorizontal) {
-            if (fillVertical) {
-                c.fill = GridBagConstraints.BOTH;
-            } else {
-                c.fill = GridBagConstraints.HORIZONTAL;
-            }
-        } else {
-            if (fillVertical) {
-                c.fill = GridBagConstraints.VERTICAL;
-            } else {
-                c.fill = GridBagConstraints.NONE;
-            }
-        }
-        c.anchor = anchor;
-        c.weightx = fillHorizontal ? 1 : 0;
-        c.weighty = fillVertical ? 1 : 0;
-        return c;
     }
 
     private void loadFile(File inputFile, ZoomableImage inputImageView, ZoomableImage outputImageView) {

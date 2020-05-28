@@ -10,11 +10,30 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 public class FileChooser extends JPanel {
     private File folder;
     private final JList<CustomFile> fileList;
+
+    public FileChooser(String folder) {
+        super();
+        this.setLayout(new GridBagLayout());
+        this.folder = new File(folder);
+
+        JTextField filter = new JTextField();
+        filter.setToolTipText("Filter files (press enter to apply filter)");
+        this.add(filter, UITools.constraints(0, 0, true, false, GridBagConstraints.NORTH));
+
+        fileList = new JList<>();
+        fileList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
+        this.add(new JScrollPane(fileList), UITools.constraints(0, 1, true, true, GridBagConstraints.NORTHWEST));
+        this.setMinimumSize(new Dimension(200, 200));
+
+        filter.addActionListener(e -> {
+            refreshFiles(filter.getText());
+        });
+        refreshFiles(filter.getText());
+    }
 
     private static class CustomFile {
         private final File file;
@@ -34,21 +53,9 @@ public class FileChooser extends JPanel {
         void fileSelected(File file);
     }
 
-    public FileChooser(String folder) {
-        super();
-        this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        this.folder = new File(folder);
-
-        fileList = new JList<>();
-        fileList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
-        this.add(new JScrollPane(fileList));
-        this.setMinimumSize(new Dimension(200, 200));
-
-        refreshFiles();
-    }
-
-    private void refreshFiles() {
-        File[] files = folder.listFiles();
+    private void refreshFiles(String filenameFilter) {
+        final String lowercaseFilenameFilter = filenameFilter.toLowerCase();
+        File[] files = folder.listFiles(pathname -> pathname.getName().toLowerCase().contains(lowercaseFilenameFilter));
         if (files == null) {
             files = new File[0];
         }
