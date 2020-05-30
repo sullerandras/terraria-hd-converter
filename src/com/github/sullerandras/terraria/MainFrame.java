@@ -1,6 +1,5 @@
 package com.github.sullerandras.terraria;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -22,7 +21,7 @@ public class MainFrame extends JFrame {
 
         // toolbar
 
-        JPanel toolbar = new JPanel(new FlowLayout());
+        JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT));
 
         toolbar.add(new JLabel("Zoom level:"));
         JSlider zoomLevelSlider = new JSlider(JSlider.HORIZONTAL, 1, 15, 8);
@@ -114,9 +113,8 @@ public class MainFrame extends JFrame {
         loadFile(new File(inputImagePath), inputImageView, outputImageView);
 
         this.setContentPane(mainPanel);
-        this.setSize(800, 480);
-
         this.pack();
+        this.setSize(800, 480);
 
         this.setVisible(true);
     }
@@ -145,7 +143,7 @@ public class MainFrame extends JFrame {
     private void convertFiles(List<File> files, File inputFolder, String outputFolder) {
         clearError();
         new File(outputFolder).mkdirs();
-        SwingWorker<String, Integer> task = new SwingWorker<>() {
+        SwingWorker<String, Integer> task = new SwingWorker<String, Integer>() {
             @Override
             protected String doInBackground() throws Exception {
                 int success = 0;

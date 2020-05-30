@@ -9,7 +9,7 @@ public class StatusBar extends JPanel {
 
     public StatusBar() {
         super();
-        this.setLayout(new FlowLayout());
+        this.setLayout(new FlowLayout(FlowLayout.LEFT));
         label = new JLabel(" ");
         progressBar = new JProgressBar(0, 100);
         progressBar.setVisible(false);
