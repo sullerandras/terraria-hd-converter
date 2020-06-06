@@ -1,5 +1,7 @@
 package com.github.sullerandras.terraria;
 
+import com.github.carlosascari.ImageScalerxBR;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -131,7 +133,7 @@ public class MainFrame extends JFrame {
         }
         inputImageView.setImage(inputImage);
         try {
-            Image outputImage = new ImageConverter().convertImage(inputFile.getName(), inputImage);
+            Image outputImage = new ImageConverter().convertImage(inputFile.getName(), inputImage, new ImageScalerxBR());
             outputImageView.setImage(outputImage);
         } catch (ImageConverterException e) {
             showError("Error converting image: " + e, e);
@@ -164,7 +166,7 @@ public class MainFrame extends JFrame {
                     }
 
                     try {
-                        Image outputImage = new ImageConverter().convertImage(file.getName(), inputImage);
+                        Image outputImage = new ImageConverter().convertImage(file.getName(), inputImage, new ImageScalerxBR());
                         try {
                             ImageTools.saveImage(outputImage, new File(outputFolder, relativePath));
                             success++;

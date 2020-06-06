@@ -1,20 +1,18 @@
 package com.github.sullerandras.terraria;
 
-import com.blogspot.intrepidis.xBRZ;
-
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
 public class ImageConverter {
-    public Image convertImage(String fileName, BufferedImage img) throws ImageConverterException {
+    public Image convertImage(String fileName, BufferedImage img, ImageScalerInterface imageScaler) throws ImageConverterException {
         final int w = Math.max(img.getWidth() / 2, 1);
         final int h = Math.max(img.getHeight() / 2, 1);
 
         img = clipImage(img);
         Image scaledDownImage = img.getScaledInstance(w, h, Image.SCALE_AREA_AVERAGING);
-        return scaleUpImage(fileName, scaledDownImage);
+        return scaleUpImage(fileName, scaledDownImage, imageScaler);
     }
 
     /**
@@ -25,6 +23,7 @@ public class ImageConverter {
      */
     private BufferedImage clipImage(BufferedImage img) throws ImageConverterException {
         if (img.getWidth() == 1 || img.getHeight() == 1 || img.getWidth() % 2 == 0) {
+            checkIfAlreadySmoothed(img);
             return img;
         }
         BufferedImage clippedImg = img.getSubimage(0, 0, img.getWidth() - 1, img.getHeight() & 0xfffffffe);
@@ -59,7 +58,7 @@ public class ImageConverter {
         }
     }
 
-    private Image scaleUpImage(String fileName, Image image) throws ImageConverterException {
+    private Image scaleUpImage(String fileName, Image image, ImageScalerInterface imageScaler) throws ImageConverterException {
         final boolean frame = true;
         final BufferedImage b;
         if (frame) {
@@ -71,15 +70,9 @@ public class ImageConverter {
         final int height = b.getHeight();
         final int[] inputPixels = getPixelsAsInt(b);
         final int[] targetPixels = new int[width * height * 4];
-        new xBRZ().scaleImage(
-                xBRZ.ScaleSize.Times2,
-                inputPixels,
-                targetPixels,
-                width,
-                height,
-                new xBRZ.ScalerCfg(),
-                0,
-                height);
+
+        imageScaler.scaleImage(inputPixels, targetPixels, width, height);
+
         final BufferedImage scaled = getImageFromArray(targetPixels, width * 2, height * 2);
         if (frame) {
             return scaled.getSubimage(2, 2, scaled.getWidth() - 4, scaled.getHeight() - 4);
