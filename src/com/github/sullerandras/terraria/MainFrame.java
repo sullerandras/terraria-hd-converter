@@ -1,5 +1,6 @@
 package com.github.sullerandras.terraria;
 
+import com.blogspot.intrepidis.ImageScalerxBRZ;
 import com.github.carlosascari.ImageScalerxBR;
 
 import javax.swing.*;
@@ -26,7 +27,7 @@ public class MainFrame extends JFrame {
         JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT));
 
         toolbar.add(new JLabel("Zoom level:"));
-        JSlider zoomLevelSlider = new JSlider(JSlider.HORIZONTAL, 1, 15, 8);
+        JSlider zoomLevelSlider = new JSlider(JSlider.HORIZONTAL, 1, 15, 4);
         zoomLevelSlider.setMajorTickSpacing(7);
         zoomLevelSlider.setMinorTickSpacing(1);
         zoomLevelSlider.setPaintTicks(true);
@@ -37,12 +38,20 @@ public class MainFrame extends JFrame {
         toolbar.add(outputFolderLabel);
         JTextField outputFolder = new JTextField("temp2");
         toolbar.add(outputFolder);
-        JButton convertSelectedButton = new JButton("Convert Selected");
-        convertSelectedButton.setToolTipText("Converts all selected images and saves them to the \"Output folder\"");
-        toolbar.add(convertSelectedButton);
-        JButton convertAll = new JButton("Convert All");
-        convertAll.setToolTipText("Converts all files recursively in the input folder and saves them to the \"Output folder\" with the correct relative path");
-        toolbar.add(convertAll);
+
+        JButton xBRZConvertSelectedButton = new JButton("Convert Selected with xBRZ");
+        xBRZConvertSelectedButton.setToolTipText("Converts all selected images with xBRZ filter and saves them to the \"Output folder\"");
+        toolbar.add(xBRZConvertSelectedButton);
+        JButton xBRZConvertAll = new JButton("Convert All with xBRZ");
+        xBRZConvertAll.setToolTipText("Converts all files recursively in the input folder with xBRZ filter and saves them to the \"Output folder\" with the correct relative path");
+        toolbar.add(xBRZConvertAll);
+
+        JButton xBRConvertSelectedButton = new JButton("Convert Selected with xBR");
+        xBRConvertSelectedButton.setToolTipText("Converts all selected images with xBR filter and saves them to the \"Output folder\"");
+        toolbar.add(xBRConvertSelectedButton);
+        JButton xBRConvertAll = new JButton("Convert All with xBR");
+        xBRConvertAll.setToolTipText("Converts all files recursively in the input folder with xBR filter and saves them to the \"Output folder\" with the correct relative path");
+        toolbar.add(xBRConvertAll);
 
         mainPanel.add(toolbar, UITools.constraints(0, 0, true, false, GridBagConstraints.NORTH));
 
@@ -57,25 +66,18 @@ public class MainFrame extends JFrame {
 
         // orignal image panel
 
-        JPanel imagesPanel = new JPanel(new GridLayout(1, 2, 10, 10));
-
-        JPanel leftPanel = new JPanel();
-        leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
+        JPanel imagesPanel = new JPanel(new GridLayout(1, 3, 10, 10));
 
         ZoomableImage inputImageView = new ZoomableImage(zoomLevelSlider.getValue(), "Input image");
-        leftPanel.add(inputImageView);
+        imagesPanel.add(inputImageView);
 
-        imagesPanel.add(leftPanel);
+        // filtered image panels
 
-        // xBRZ image panel
+        ZoomableImage xBRZoutputImageView = new ZoomableImage(zoomLevelSlider.getValue(), "xBRZ filtered image");
+        imagesPanel.add(xBRZoutputImageView);
 
-        JPanel rightPanel = new JPanel();
-        rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.Y_AXIS));
-
-        ZoomableImage outputImageView = new ZoomableImage(zoomLevelSlider.getValue(), "xBRZ smoothed image");
-        rightPanel.add(outputImageView);
-
-        imagesPanel.add(rightPanel);
+        ZoomableImage xBRoutputImageView = new ZoomableImage(zoomLevelSlider.getValue(), "xBR filtered image");
+        imagesPanel.add(xBRoutputImageView);
 
         mainContentPanel.add(imagesPanel, UITools.constraints(1, 0, true, true, GridBagConstraints.EAST));
 
@@ -87,21 +89,35 @@ public class MainFrame extends JFrame {
         zoomLevelSlider.addChangeListener(e -> {
             clearError();
             inputImageView.setZoomLevel(zoomLevelSlider.getValue());
-            outputImageView.setZoomLevel(zoomLevelSlider.getValue());
+            xBRZoutputImageView.setZoomLevel(zoomLevelSlider.getValue());
+            xBRoutputImageView.setZoomLevel(zoomLevelSlider.getValue());
         });
 
         fileChooser.addFileSelectionListener(file -> {
-            loadFile(file, inputImageView, outputImageView);
-            bindScrollbars(inputImageView, outputImageView);
+            loadFile(file, inputImageView, xBRZoutputImageView, xBRoutputImageView);
+            bindScrollbars(inputImageView, xBRZoutputImageView);
+            bindScrollbars(xBRoutputImageView, xBRZoutputImageView);
         });
 
-        convertSelectedButton.addActionListener(e -> {
-            convertFiles(fileChooser.getSelectedFiles(), fileChooser.getFolder(), outputFolder.getText());
+        xBRZConvertSelectedButton.addActionListener(e -> {
+            convertFiles(fileChooser.getSelectedFiles(), fileChooser.getFolder(), outputFolder.getText(), new ImageScalerxBRZ());
         });
 
-        convertAll.addActionListener(e -> {
+        xBRZConvertAll.addActionListener(e -> {
             try {
-                convertFiles(fileChooser.getAllFilesRecursively(), fileChooser.getFolder(), outputFolder.getText());
+                convertFiles(fileChooser.getAllFilesRecursively(), fileChooser.getFolder(), outputFolder.getText(), new ImageScalerxBRZ());
+            } catch (IOException ex) {
+                showError("Error converting files: "+ex, ex);
+            }
+        });
+
+        xBRConvertSelectedButton.addActionListener(e -> {
+            convertFiles(fileChooser.getSelectedFiles(), fileChooser.getFolder(), outputFolder.getText(), new ImageScalerxBR());
+        });
+
+        xBRConvertAll.addActionListener(e -> {
+            try {
+                convertFiles(fileChooser.getAllFilesRecursively(), fileChooser.getFolder(), outputFolder.getText(), new ImageScalerxBR());
             } catch (IOException ex) {
                 showError("Error converting files: "+ex, ex);
             }
@@ -110,9 +126,9 @@ public class MainFrame extends JFrame {
 //        inputImagePath = "Item_1.png";
 //        inputImagePath = "temp1/NPC_4.png";
 //        String inputImagePath = "temp1/Tiles_21.png";
-        String inputImagePath = "temp1/NPC_264.png";
+        String inputImagePath = "temp1/Sun.png";
 
-        loadFile(new File(inputImagePath), inputImageView, outputImageView);
+        loadFile(new File(inputImagePath), inputImageView, xBRZoutputImageView, xBRoutputImageView);
 
         this.setContentPane(mainPanel);
         this.pack();
@@ -121,7 +137,7 @@ public class MainFrame extends JFrame {
         this.setVisible(true);
     }
 
-    private void loadFile(File inputFile, ZoomableImage inputImageView, ZoomableImage outputImageView) {
+    private void loadFile(File inputFile, ZoomableImage inputImageView, ZoomableImage xBRZoutputImageView, ZoomableImage xBRoutputImageView) {
         System.out.println("loading file " + inputFile);
         clearError();
         BufferedImage inputImage = null;
@@ -133,16 +149,22 @@ public class MainFrame extends JFrame {
         }
         inputImageView.setImage(inputImage);
         try {
-            Image outputImage = new ImageConverter().convertImage(inputFile.getName(), inputImage, new ImageScalerxBR());
-            outputImageView.setImage(outputImage);
+            Image outputImage = new ImageConverter().convertImage(inputFile.getName(), inputImage, new ImageScalerxBRZ());
+            xBRZoutputImageView.setImage(outputImage);
         } catch (ImageConverterException e) {
             showError("Error converting image: " + e, e);
-            outputImageView.setImage(null);
+            xBRZoutputImageView.setImage(null);
         }
-
+        try {
+            Image outputImage = new ImageConverter().convertImage(inputFile.getName(), inputImage, new ImageScalerxBR());
+            xBRoutputImageView.setImage(outputImage);
+        } catch (ImageConverterException e) {
+            showError("Error converting image: " + e, e);
+            xBRoutputImageView.setImage(null);
+        }
     }
 
-    private void convertFiles(List<File> files, File inputFolder, String outputFolder) {
+    private void convertFiles(List<File> files, File inputFolder, String outputFolder, ImageScalerInterface imageScaler) {
         clearError();
         new File(outputFolder).mkdirs();
         SwingWorker<String, Integer> task = new SwingWorker<String, Integer>() {
@@ -166,7 +188,7 @@ public class MainFrame extends JFrame {
                     }
 
                     try {
-                        Image outputImage = new ImageConverter().convertImage(file.getName(), inputImage, new ImageScalerxBR());
+                        Image outputImage = new ImageConverter().convertImage(file.getName(), inputImage, imageScaler);
                         try {
                             ImageTools.saveImage(outputImage, new File(outputFolder, relativePath));
                             success++;
